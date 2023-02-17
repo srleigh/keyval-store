@@ -1,0 +1,35 @@
+[package]
+name = "grugmq"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+vergen = {version = "7.5.1", features = ["git"]}
+anyhow = "1.0.69"
+
+[dependencies]
+anyhow = "1.0.69"
+actix-files = "0.6.2"
+actix-web = "4.3.0"
+chrono = "0.4.23"
+procfs = "0.14.2"
+rusqlite = { version = "0.28.0", features = ["bundled"] }
+serde = { version = "1.0.152", features = ["derive"]}
+sysinfo = "0.27.7"
+futures = "0.3.26"
+
+[dev-dependencies]
+criterion = "0.3"
+reqwest = { version = "0.11.14", features = ["blocking"]}
+rayon = "1.6.1"
+
+[[bench]]
+name = "benchmark"
+harness = false
+
+[profile.release]
+opt-level = 3
+#lto = true

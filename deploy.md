@@ -1,0 +1,20 @@
+# How grugmq.com is Currently Deployed
+- Oracle cloud free VM
+  - Ubuntu
+  - arm
+  - 12 core
+  - 74GB
+- Oracle VM instance setup
+  - allow traffic from port 80 on NIC
+- DNS through Namecheap
+  - in advanced config direct to ip of Oracle instance
+- VM instance setup steps
+  - rustup
+  - $ sudo apt install git screen sqlite3 gcc -y
+  - allow all traffic through iptables: $ iptables -I INPUT -j ACCEPT
+- Deploy
+  - clone repo
+  - $ cargo build --release
+  - $ screen
+  - $ sudo ./target/release/grugmq 80
+  - exit screen
