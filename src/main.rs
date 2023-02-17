@@ -49,7 +49,7 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 </head>
 <body>
 <h3>World's Simplest Key-Value Store</h3>
-<img src=\"/webfiles/api.svg\">
+<img src=\"/webfiles/api.drawio.png\">
 <p>Super simple free key-value store.  No setup or configuration, and did I mention it is free!
 
 <h3>Python 3 Example</h3>
