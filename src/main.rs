@@ -1,82 +1,16 @@
-use std::sync::atomic::{AtomicU64, Ordering};
+mod db;
+use db::DB;
+
+mod app_state;
+use app_state::AppState;
+
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, web::Data};
 use actix_files::Files;
-use chrono::{DateTime, Utc};
-use rusqlite::{Connection, Result};
+use chrono::Utc;
 use serde::Deserialize;
 use sysinfo::{SystemExt, DiskExt};
 use futures::StreamExt;
 
-struct AppState{
-    read_count: AtomicU64,
-    write_count: AtomicU64,
-    startup_datetime: DateTime<Utc>,
-}
-
-impl AppState{
-    fn new() -> AppState {
-        let read_count= AtomicU64::new(0);
-        let write_count= AtomicU64::new(0);
-        let startup_datetime = Utc::now();
-        AppState{read_count, write_count, startup_datetime}
-    }
-}
-
-struct DB{
-    conn: Connection,
-}
-
-impl DB{
-    fn new() -> Result<DB>{
-        let conn = Connection::open("./db/v1msgs.db")?;
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS msgs (
-                channel TEXT PRIMARY KEY,
-                msg TEXT
-            )",
-            (),
-        )?;
-        Ok(DB{conn})
-    }
-
-    fn write(&self, channel: &str, msg: &str) ->Result<()>{
-        self.conn.execute(
-            "INSERT OR REPLACE INTO msgs (channel, msg) VALUES (?1, ?2)",
-            (channel, msg),
-        )?;
-        Ok(())
-    }
-
-    fn read(&self, channel: &str) -> Result<String>{
-        self.conn.query_row(
-            "SELECT msg FROM msgs WHERE channel = ?",
-            [channel],
-            |row| row.get(0),
-        )
-    }
-
-    fn num_rows(&self) -> Result<i64>{
-        self.conn.query_row(
-            "SELECT COUNT(*) FROM msgs",
-            [],
-            |row| row.get(0),
-        )
-    }
-
-    fn database_size(&self) -> Result<i64>{
-        let page_count: i64 = self.conn.query_row(
-            "PRAGMA PAGE_COUNT",
-            [],
-            |row| row.get(0),
-        )?;
-        let page_size: i64 = self.conn.query_row(
-            "PRAGMA PAGE_SIZE",
-            [],
-            |row| row.get(0),
-        )?;
-        Ok(page_count * page_size)
-    }
-}
 
 #[derive(Deserialize)]
 struct FormData {
@@ -97,8 +31,8 @@ fn memory_stats() -> anyhow::Result<(f64, f64, f64)> {
 #[get("/")]
 async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     let channels = db.num_rows().unwrap_or(-1);
-    let reads = app_state.read_count.load(Ordering::SeqCst);
-    let writes = app_state.write_count.load(Ordering::SeqCst);
+    let reads = app_state.get_reads();
+    let writes = app_state.get_writes();
     let hours_uptime = (Utc::now() - app_state.startup_datetime).num_minutes() as f64 / 60.0;
     let (mem_virtual, mem_resident, mem_total) = memory_stats().unwrap_or((-1.0,-1.0,-1.0));
     let build_time = env!("VERGEN_BUILD_TIMESTAMP");
@@ -109,39 +43,43 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     let disk_total = system.disks()[0].total_space() as f64 / 1024.0 / 1024.0;
     let html = format!("
 <html>
-<head><title>KeyVal-Store</title></head>
+<head>
+ <title>KeyVal-Store</title>
+ <link rel=\"stylesheet\" href=\"/webfiles/styles.css\">
+</head>
 <body>
 <h3>World's Simplest Key-Value Store</h3>
-Super simple free key-value store.  No setup or configuration, and did I mention it is free!
+<img src=\"/webfiles/api.svg\">
+<p>Super simple free key-value store.  No setup or configuration, and did I mention it is free!
 
-<h3>How to Use</h3>
-Rest API using only URL.  Can read and write to channels by just visiting URLs, but intention is to use code.
-<ul>
- <li> Write to channel using http get. eg. <a href=\"/v1/example_channel/set/mydata123\">http://keyval.store/v1/example_channel/set/mydata123</a>
- <li> Write using http post to url <a href=\"/v1/example_channel/get\">http://keyval.store/v1/example_channel/get</a>
- <li> Read from channel using http get.  eg. <a href=\"/v1/example_channel/get\">http://keyval.store/v1/example_channel/get</a>
- <li> Interactively read and send messages at channel address: <a href=\"/v1/example_channel\">http://keyval.store/v1/example_channel</a>
- <li> Create new channel by simply writing something to it. eg. <a href=\"/v1/new_channel/set/newdata456\">http://keyval.store/v1/new_channel/set/newdata456</a>
-</ul>
-
-<h3>Example Python 3</h3>
-<pre style=\"margin-left: 3em;\"><code>import urllib.request
-# Write \"data123\" to channel python3Example
-urllib.request.urlopen(\"http://keyval.store/v1/python3_example/set/data123\")
-# Read back data from channel
-data = urllib.request.urlopen(\"http://keyval.store/v1/python3_example/get\").read()
-print(data) # Prints b'data123'
+<h3>Python 3 Example</h3>
+<pre style=\"margin-left: 3em;\"><code>import urllib.request as req
+data_in = \"123\"
+my_channel = \"http://keyval.store/v1/my_channel/\"  # api version 1 and channel 'my_channel'
+req.urlopen(my_channel + \"set/\" + data_in)  # set
+data_out = res.urlopen(my_channel + \"get\").read().decode('utf-8')  # get
+assert(data_in == data_out)
 </code></pre>
 
-<h3>Channels</h3>
+<h3>REST API</h3>
+<p>Can get and set to values by just visiting URLs in a browser, but intention is to mostly use code.
 <ul>
- <li> Each channel hold one message
- <li> Messages overwrite other messages in channel
- <li> Messages persist in database until someone clubs Grug's server
+ <li> Set to key using http get. eg: <a href=\"/v1/my_key/set/mydata123\">http://keyval.store/v1/my_key/set/mydata123</a>
+ <li> Set value using http post to url <a href=\"/v1/my_key/set\">http://keyval.store/v1/my_key/set</a>
+ <li> Get value using http get.  eg: <a href=\"/v1/my_key/get\">http://keyval.store/v1/my_key/get</a>
+ <li> Interactively get and set values at key url: <a href=\"/v1/my_key\">http://keyval.store/v1/my_key</a>
+</ul>
+
+<h3>Storage Details</h3>
+<ul>
+ <li> Each key holds one value
+ <li> A new value will overwrite an old value for a given key
+ <li> Data persists in a database until someone unplugs the <a href=\"https://xkcd.com/908\">server</a>
+ <li> Max post size is 1MB
 </ul>
 
 <h3>Picture of Me</h3>
-<img src=\"/images/me.jpg\">
+<img src=\"/webfiles/me.jpg\">
 
 <h3>Some Details</h3>
 <ul>
@@ -170,47 +108,55 @@ print(data) # Prints b'data123'
 
 #[get("/v1/{chan}/get")]
 async fn channel_get(channel: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
-    app_state.read_count.fetch_add(1, Ordering::SeqCst);
+    app_state.increment_reads();
     let channel: String = channel.to_string();
     let msg = db.read(&channel).unwrap_or("".to_string());
     HttpResponse::Ok().body(msg)
 }
 
-#[get("/v1/{chan}")]
-async fn channel_interactive_get(channel: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
-    app_state.read_count.fetch_add(1, Ordering::SeqCst);
-    let channel: String = channel.to_string();
-    let msg = db.read(&channel).unwrap_or("".to_string());
-    let html = format!("<html><body>
-    Channel message: {msg}
+fn interactive(channel: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+    app_state.increment_reads();
+    let val = db.read(&channel).unwrap_or("".to_string());
+    let html = format!("
+    <html>
+    <script>
+async function updateValueLoop(){{
+  while(true){{
+  fetch(\"http://0.0.0.0:8080/v1/{channel}/get\")
+    .then((response) => response.text())
+    .then((data) => document.getElementById(\"val\").innerHTML = data)
+    await new Promise(r => setTimeout(r, 500));
+  }}
+}}
+updateValueLoop();
+    </script>
+
+    <body>
+    Value: <span id=\"val\">{val}</span>
 <form action=\"/v1/{channel}\" method=\"post\" enctype=\"application/x-www-form-urlencoded\">
- <label for=\"msg\">Enter new message: </label>
+ <label for=\"msg\">Enter new value: </label>
  <input type=\"text\" name=\"msg\" required>
- <input type=\"submit\" value=\"Send!\">
+ <input type=\"submit\" value=\"Set!\">
 </form></body></html>");
     HttpResponse::Ok().body(html)
+}
+
+#[get("/v1/{chan}")]
+async fn interactive_get(channel: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+    interactive(channel, app_state, db)
 }
 
 #[post("/v1/{chan}")]
-async fn channel_interactive_post(channel: web::Path<String>, form: web::Form<FormData>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
-    app_state.write_count.fetch_add(1, Ordering::SeqCst);
-    let channel: String = channel.to_string();
-    let _ = db.write(&channel, &form.msg);
-    app_state.read_count.fetch_add(1, Ordering::SeqCst);
-    let msg = db.read(&channel).unwrap_or("".to_string());
-    let html = format!("<html><body>
-    Channel message: {msg}
-<form action=\"/v1/{channel}\" method=\"post\" enctype=\"application/x-www-form-urlencoded\">
- <label for=\"msg\">Enter new message: </label>
- <input type=\"text\" name=\"msg\" required>
- <input type=\"submit\" value=\"Send!\">
-</form></body></html>");
-    HttpResponse::Ok().body(html)
+async fn interactive_post(channel: web::Path<String>, form: web::Form<FormData>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+    app_state.increment_writes();
+    let val: String = channel.to_string();
+    let _ = db.write(&val, &form.msg);
+    interactive(channel, app_state, db)
 }
 
 #[get("/v1/{chan}/set/{data}")]
-async fn channel_set_by_url(param: web::Path<(String, String)>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
-    app_state.write_count.fetch_add(1, Ordering::SeqCst);
+async fn set_by_url(param: web::Path<(String, String)>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+    app_state.increment_writes();
     let channel = param.0.to_string();
     let msg = param.1.to_string();
     let _ = db.write(&channel, &msg);
@@ -218,9 +164,9 @@ async fn channel_set_by_url(param: web::Path<(String, String)>, app_state: Data<
 }
 
 #[post("/v1/{chan}/set")]
-async fn channel_set_by_post(param: web::Path<String>, mut payload: web::Payload, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+async fn set_by_post(param: web::Path<String>, mut payload: web::Payload, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     const MAX_SIZE: usize = 1024 * 1024;  // 1MB
-    app_state.write_count.fetch_add(1, Ordering::SeqCst);
+    app_state.increment_writes();
     let channel = param.to_string();
     // payload is a stream of Bytes objects
     let mut body = web::BytesMut::new();
@@ -263,12 +209,12 @@ async fn main() -> std::io::Result<()> {
             .app_data(app_state.clone())
             .app_data(db)
             .service(home)
-            .service(channel_interactive_get)
-            .service(channel_interactive_post)
+            .service(interactive_get)
+            .service(interactive_post)
             .service(channel_get)
-            .service(channel_set_by_url)
-            .service(channel_set_by_post)
-            .service(Files::new("/images", "./images"))
+            .service(set_by_url)
+            .service(set_by_post)
+            .service(Files::new("/webfiles", "./webfiles"))
     })
     .bind(("0.0.0.0", port))?
     .run()

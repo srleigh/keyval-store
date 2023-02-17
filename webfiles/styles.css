@@ -1,0 +1,17 @@
+body {
+  font-family: sans-serif;
+  max-width: 100ch;
+  padding: 2ch;
+  margin: auto;
+}
+pre code {
+  background-color: #eee;
+  display: block;
+  padding: 20px;
+}
+.centerImage {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
