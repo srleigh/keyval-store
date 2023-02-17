@@ -54,7 +54,9 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
  <script src=\"//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js\"></script>
  <script>hljs.highlightAll();</script>
 
+ <meta name=\"google-site-verification\" content=\"sTPhW44sBaTy3ZAqfhUeiz7Y2sScuB5N9RZlVLYst7A\" />
 </head>
+
 <body>
 <h1 style=\"text-align:center;\">World's Simplest Key-Value Store</h1>
 <p style=\"text-align:center;\"><img src=\"/webfiles/api.scalable.svg\"></p>
