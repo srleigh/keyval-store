@@ -46,26 +46,33 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 <head>
  <title>KeyVal-Store</title>
  <link rel=\"stylesheet\" href=\"/webfiles/styles.css\">
+
+ <!-- scripts to do automatic code highlighting with highlight.js -->
+ <link rel=\"stylesheet\" href=\"//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/stackoverflow-light.min.css\">
+ <script src=\"//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js\"></script>
+ <script>hljs.highlightAll();</script>
+
 </head>
 <body>
-<h3>World's Simplest Key-Value Store</h3>
-<img src=\"/webfiles/api.drawio.png\">
-<p>Super simple free key-value store.  No setup or configuration, and did I mention it is free!
+<h1 style=\"text-align:center;\">World's Simplest Key-Value Store</h1>
+<p style=\"text-align:center;\"><img src=\"/webfiles/api.svg\"></p>
+
+<p style=\"text-align:center;\">Super simple free key-value store.  No setup or configuration, and did I mention it is free!
 
 <h3>Python 3 Example</h3>
-<pre style=\"margin-left: 3em;\"><code>import urllib.request as req
+<pre><code>import urllib.request as req
 data_in = \"123\"
-my_channel = \"http://keyval.store/v1/my_channel/\"  # api version 1 and channel 'my_channel'
-req.urlopen(my_channel + \"set/\" + data_in)  # set
-data_out = res.urlopen(my_channel + \"get\").read().decode('utf-8')  # get
+my_key = \"http://keyval.store/v1/my_key/\"  # api version 1 and key 'my_key'
+req.urlopen(my_key + \"set/\" + data_in)  # set
+data_out = res.urlopen(my_key + \"get\").read().decode('utf-8')  # get
 assert(data_in == data_out)
 </code></pre>
 
 <h3>REST API</h3>
 <p>Can get and set to values by just visiting URLs in a browser, but intention is to mostly use code.
 <ul>
- <li> Set to key using http get. eg: <a href=\"/v1/my_key/set/mydata123\">http://keyval.store/v1/my_key/set/mydata123</a>
- <li> Set value using http post to url <a href=\"/v1/my_key/set\">http://keyval.store/v1/my_key/set</a>
+ <li> Set using http get. eg: <a href=\"/v1/my_key/set/mydata123\">http://keyval.store/v1/my_key/set/mydata123</a>
+ <li> Set using http post to url <a href=\"/v1/my_key/set\">http://keyval.store/v1/my_key/set</a>
  <li> Get value using http get.  eg: <a href=\"/v1/my_key/get\">http://keyval.store/v1/my_key/get</a>
  <li> Interactively get and set values at key url: <a href=\"/v1/my_key\">http://keyval.store/v1/my_key</a>
 </ul>
@@ -81,7 +88,7 @@ assert(data_in == data_out)
 <h3>Picture of Me</h3>
 <img src=\"/webfiles/me.jpg\">
 
-<h3>Some Details</h3>
+<h3>Server Info</h3>
 <ul>
  <li> Channels: {channels}
  <li> Session reads: {reads}
