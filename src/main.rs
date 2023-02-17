@@ -100,7 +100,9 @@ assert(data_in == data_out)
 
 <h3>Todo</h3>
 <ul>
- <li> Nothing currently
+ <li> Rust example
+ <li> C example
+ <li> Javascript example
 <ul>
 </body></html>");
     HttpResponse::Ok().body(html)
