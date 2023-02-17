@@ -16,5 +16,5 @@
   - clone repo
   - $ cargo build --release
   - $ screen
-  - $ sudo ./target/release/grugmq 80
+  - $ ./target/release/keyval-store 80
   - exit screen

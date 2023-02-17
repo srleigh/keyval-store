@@ -1,6 +1,6 @@
-# Grug's Message Queue
+# Worlds Simplest Key-Value Store
 
-Use here http://grugmq.com
+Use here http://keyval.store
 
 Picture of me
 

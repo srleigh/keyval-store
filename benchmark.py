@@ -3,11 +3,11 @@ import threading
 import time
 
 #URL = "http://0.0.0.0:8080"
-#URL = "http://grugmq.com"
+#URL = "http://keyval.store"
 URL = "http://144.24.175.153"
 
 OneKB = "12345678" * 128
-urllib.request.urlopen(URL + "/v1/benchmark/write/" + OneKB)
+urllib.request.urlopen(URL + "/v1/benchmark/set/" + OneKB)
 
 NUM_THREADS=500
 READS_PER_THREAD=100
@@ -15,7 +15,7 @@ READS_PER_THREAD=100
 def threadedReader(threadNum):
     count = 0
     for i in range(0, READS_PER_THREAD):
-        data = urllib.request.urlopen(URL + "/v1/benchmark/read", timeout=10.0).read()
+        data = urllib.request.urlopen(URL + "/v1/benchmark/get", timeout=10.0).read()
         count+=1
         if count%10 == 0:
             print("threadNum: " + str(threadNum) + " count: " + str(count) + " data: " + str(len(data)))

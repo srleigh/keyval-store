@@ -95,7 +95,7 @@ fn memory_stats() -> anyhow::Result<(f64, f64, f64)> {
 }
 
 #[get("/")]
-async fn welcome(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     let channels = db.num_rows().unwrap_or(-1);
     let reads = app_state.read_count.load(Ordering::SeqCst);
     let writes = app_state.write_count.load(Ordering::SeqCst);
@@ -109,27 +109,27 @@ async fn welcome(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     let disk_total = system.disks()[0].total_space() as f64 / 1024.0 / 1024.0;
     let html = format!("
 <html>
-<head><title>GrugMQ</title></head>
+<head><title>KeyVal-Store</title></head>
 <body>
-<h3>Grug's Free Message Queue</h3>
-Hi.  This is Grug's message queue.  You can use it too for free!
+<h3>World's Simplest Key-Value Store</h3>
+Super simple free key-value store.  No setup or configuration, and did I mention it is free!
 
 <h3>How to Use</h3>
 Rest API using only URL.  Can read and write to channels by just visiting URLs, but intention is to use code.
 <ul>
- <li> Write to channel using http get. eg. <a href=\"/v1/example_channel/write/grugsdata\">http://grugmq.com/v1/example_channel/write/grugsdata</a>
- <li> Write using http post to url <a href=\"/v1/example_channel/write\">http://grugmq.com/v1/example_channel/write</a>
- <li> Read from channel using http get.  eg. <a href=\"/v1/example_channel/read\">http://grugmq.com/v1/example_channel/read</a>
- <li> Interactively read and send messages at channel address: <a href=\"/v1/example_channel\">http://grugmq.com/v1/example_channel</a>
- <li> Create new channel by simply writing something to it. eg. <a href=\"/v1/new_channel/write/grugsdata\">http://grugmq.com/v1/new_channel/write/grugsdata</a>
+ <li> Write to channel using http get. eg. <a href=\"/v1/example_channel/set/mydata123\">http://keyval.store/v1/example_channel/set/mydata123</a>
+ <li> Write using http post to url <a href=\"/v1/example_channel/get\">http://keyval.store/v1/example_channel/get</a>
+ <li> Read from channel using http get.  eg. <a href=\"/v1/example_channel/get\">http://keyval.store/v1/example_channel/get</a>
+ <li> Interactively read and send messages at channel address: <a href=\"/v1/example_channel\">http://keyval.store/v1/example_channel</a>
+ <li> Create new channel by simply writing something to it. eg. <a href=\"/v1/new_channel/set/newdata456\">http://keyval.store/v1/new_channel/set/newdata456</a>
 </ul>
 
 <h3>Example Python 3</h3>
 <pre style=\"margin-left: 3em;\"><code>import urllib.request
 # Write \"data123\" to channel python3Example
-urllib.request.urlopen(\"http://grugmq.com/v1/python3_example/write/data123\")
+urllib.request.urlopen(\"http://keyval.store/v1/python3_example/set/data123\")
 # Read back data from channel
-data = urllib.request.urlopen(\"http://grugmq.com/v1/python3_example/read\").read()
+data = urllib.request.urlopen(\"http://keyval.store/v1/python3_example/get\").read()
 print(data) # Prints b'data123'
 </code></pre>
 
@@ -156,7 +156,7 @@ print(data) # Prints b'data123'
  <li> Disk space total: {disk_total:.3} MB
  <li> Build time: {build_time}
  <li> Build version: {build_version}
- <li> Source: <a href=\"https://github.com/srleigh/grugmq\">https://github.com/srleigh/grugmq</a>
+ <li> Source: <a href=\"https://github.com/srleigh/keyval-store\">https://github.com/srleigh/keyval-store</a>
  <li> Inspiration: <a href=\"https://grugbrain.dev/\">https://grugbrain.dev/</a>
 </ul>
 
@@ -168,8 +168,8 @@ print(data) # Prints b'data123'
     HttpResponse::Ok().body(html)
 }
 
-#[get("/v1/{chan}/read")]
-async fn channel_read(channel: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+#[get("/v1/{chan}/get")]
+async fn channel_get(channel: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     app_state.read_count.fetch_add(1, Ordering::SeqCst);
     let channel: String = channel.to_string();
     let msg = db.read(&channel).unwrap_or("".to_string());
@@ -208,8 +208,8 @@ async fn channel_interactive_post(channel: web::Path<String>, form: web::Form<Fo
     HttpResponse::Ok().body(html)
 }
 
-#[get("/v1/{chan}/write/{data}")]
-async fn channel_write_get(param: web::Path<(String, String)>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+#[get("/v1/{chan}/set/{data}")]
+async fn channel_set_by_url(param: web::Path<(String, String)>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     app_state.write_count.fetch_add(1, Ordering::SeqCst);
     let channel = param.0.to_string();
     let msg = param.1.to_string();
@@ -217,8 +217,8 @@ async fn channel_write_get(param: web::Path<(String, String)>, app_state: Data<A
     HttpResponse::Ok()
 }
 
-#[post("/v1/{chan}/write")]
-async fn channel_write_post(param: web::Path<String>, mut payload: web::Payload, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+#[post("/v1/{chan}/set")]
+async fn channel_set_by_post(param: web::Path<String>, mut payload: web::Payload, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     const MAX_SIZE: usize = 1024 * 1024;  // 1MB
     app_state.write_count.fetch_add(1, Ordering::SeqCst);
     let channel = param.to_string();
@@ -262,12 +262,12 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(app_state.clone())
             .app_data(db)
-            .service(welcome)
+            .service(home)
             .service(channel_interactive_get)
             .service(channel_interactive_post)
-            .service(channel_read)
-            .service(channel_write_get)
-            .service(channel_write_post)
+            .service(channel_get)
+            .service(channel_set_by_url)
+            .service(channel_set_by_post)
             .service(Files::new("/images", "./images"))
     })
     .bind(("0.0.0.0", port))?

@@ -5,33 +5,33 @@ import urllib.request
 import time
 import threading
 
-URL = "http://grugmq.com"
+URL = "http://keyval.store"
 #URL = "http://0.0.0.0:8080"
 
 def git_pull():
     print("Running git pull...")
-    result = subprocess.run(["git","pull"], capture_output=True, cwd="./grugmq")
+    result = subprocess.run(["git","pull"], capture_output=True, cwd="./keyval-store")
     print(result.stdout)
 
 def git_head():
     print("Running git pull...")
-    result = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, cwd="./grugmq")
+    result = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, cwd="./keyval-store")
     return result.stdout.decode('utf-8')
 
 def cargo_build():
     print("Running cargo build...")
-    result = subprocess.run(["cargo","build","--release"], capture_output=True, cwd="./grugmq")
+    result = subprocess.run(["cargo","build","--release"], capture_output=True, cwd="./keyval-store")
     print(result.stdout)
 
 def set(msg):
     try:
-        urllib.request.urlopen(URL + "/v1/deploy/write/" + msg)
+        urllib.request.urlopen(URL + "/v1/deploy/set/" + msg)
     except:
         pass
 
 def get():
     try:
-        return urllib.request.urlopen(URL + "/v1/deploy/read").read().decode('utf-8')
+        return urllib.request.urlopen(URL + "/v1/deploy/get").read().decode('utf-8')
     except:
         return ""
 
@@ -56,7 +56,7 @@ class KillableProcess:
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
     def start(self):
-        self.p = subprocess.Popen('./target/release/grugmq 80', cwd="./grugmq", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, preexec_fn=os.setsid)
+        self.p = subprocess.Popen('./target/release/keyval-store 80', cwd="./keyval-store", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, preexec_fn=os.setsid)
         os.set_blocking(self.p.stdout.fileno(), False)
         t = threading.Thread(target=printer, args=(self.p.stdout, 1))
         t.daemon = True
