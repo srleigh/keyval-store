@@ -61,9 +61,6 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 
 <p style=\"text-align:center;\">Super simple free key-value store.  No setup or configuration, and did I mention it is free!
 
-<h3>Python 3 Example</h3>
-<pre><code>{python_example}</code></pre>
-
 <h3>REST API</h3>
 <p>Can get and set to values by just visiting URLs in a browser, but intention is to mostly use code.
 <ul>
@@ -72,6 +69,9 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
  <li> Get value using http get.  eg: <a href=\"/v1/newkey/get\">http://keyval.store/v1/newkey/get</a>
  <li> Interactively get and set values at key url: <a href=\"/v1/newkey\">http://keyval.store/v1/newkey</a>
 </ul>
+
+<h3>Python 3 Example</h3>
+<pre><code>{python_example}</code></pre>
 
 <h3>Rust Example</h3>
 <pre><code>{rust_example}</code></pre>
