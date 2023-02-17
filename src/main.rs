@@ -41,6 +41,8 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     let mut system = sysinfo::System::new_all();
     system.refresh_all();
     let disk_total = system.disks()[0].total_space() as f64 / 1024.0 / 1024.0;
+    let python_example = include_str!("../examples/python.py");
+    let rust_example = include_str!("../examples/rust/src/main.rs");
     let html = format!("
 <html>
 <head>
@@ -60,33 +62,27 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 <p style=\"text-align:center;\">Super simple free key-value store.  No setup or configuration, and did I mention it is free!
 
 <h3>Python 3 Example</h3>
-<pre><code>import urllib.request as req
-data_in = \"123\"
-my_key = \"http://keyval.store/v1/my_key/\"  # api version 1 and key 'my_key'
-req.urlopen(my_key + \"set/\" + data_in)  # set
-data_out = res.urlopen(my_key + \"get\").read().decode('utf-8')  # get
-assert(data_in == data_out)
-</code></pre>
+<pre><code>{python_example}</code></pre>
 
 <h3>REST API</h3>
 <p>Can get and set to values by just visiting URLs in a browser, but intention is to mostly use code.
 <ul>
- <li> Set using http get. eg: <a href=\"/v1/my_key/set/mydata123\">http://keyval.store/v1/my_key/set/mydata123</a>
- <li> Set using http post to url <a href=\"/v1/my_key/set\">http://keyval.store/v1/my_key/set</a>
- <li> Get value using http get.  eg: <a href=\"/v1/my_key/get\">http://keyval.store/v1/my_key/get</a>
- <li> Interactively get and set values at key url: <a href=\"/v1/my_key\">http://keyval.store/v1/my_key</a>
+ <li> Set using http get. eg: <a href=\"/v1/newkey/set/mydata123\">http://keyval.store/v1/newkey/set/mydata123</a>
+ <li> Set using http post to url <a href=\"/v1/newkey/set\">http://keyval.store/v1/newkey/set</a>
+ <li> Get value using http get.  eg: <a href=\"/v1/newkey/get\">http://keyval.store/v1/newkey/get</a>
+ <li> Interactively get and set values at key url: <a href=\"/v1/newkey\">http://keyval.store/v1/newkey</a>
 </ul>
+
+<h3>Rust Example</h3>
+<pre><code>{rust_example}</code></pre>
 
 <h3>Storage Details</h3>
 <ul>
  <li> Each key holds one value
  <li> A new value will overwrite an old value for a given key
- <li> Data persists in a database until someone unplugs the <a href=\"https://xkcd.com/908\">server</a>
+ <li> Data persists in a database
  <li> Max post size is 1MB
 </ul>
-
-<h3>Picture of Me</h3>
-<img src=\"/webfiles/me.jpg\">
 
 <h3>Server Info</h3>
 <ul>
@@ -105,9 +101,11 @@ assert(data_in == data_out)
  <li> Inspiration: <a href=\"https://grugbrain.dev/\">https://grugbrain.dev/</a>
 </ul>
 
+<h3>Picture of Site Developer</h3>
+<img src=\"/webfiles/me.jpg\">
+
 <h3>Todo</h3>
 <ul>
- <li> Rust example
  <li> C example
  <li> Javascript example
 <ul>
