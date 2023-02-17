@@ -122,7 +122,7 @@ fn interactive(channel: web::Path<String>, app_state: Data<AppState>, db: Data<D
     <script>
 async function updateValueLoop(){{
   while(true){{
-  fetch(\"http://0.0.0.0:8080/v1/{channel}/get\")
+  fetch(\"http://keyval.store/v1/{channel}/get\")
     .then((response) => response.text())
     .then((data) => document.getElementById(\"val\").innerHTML = data)
     await new Promise(r => setTimeout(r, 500));
