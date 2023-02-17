@@ -55,7 +55,7 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 </head>
 <body>
 <h1 style=\"text-align:center;\">World's Simplest Key-Value Store</h1>
-<p style=\"text-align:center;\"><img src=\"/webfiles/api.svg\"></p>
+<p style=\"text-align:center;\"><img src=\"/webfiles/api.scalable.svg\"></p>
 
 <p style=\"text-align:center;\">Super simple free key-value store.  No setup or configuration, and did I mention it is free!
 
