@@ -208,17 +208,8 @@ async fn set_by_post_body(param: web::Path<String>, mut payload: web::Payload, a
     HttpResponse::Ok()
 }
 
-pub async fn lib_main() -> std::io::Result<()> {
-    //std::fs::create_dir_all("./db")?;
-    let args: Vec<String> = std::env::args().collect();
-    let port:u16 = {
-        if args.len() > 1{
-            args[1].parse().unwrap()
-        }
-        else{
-            8080
-        }
-    };
+pub async fn lib_main(port: u16) -> std::io::Result<()> {
+    std::fs::create_dir_all("./db")?;
     println!("Starting server on port {port}");
     let app_state = Data::new(AppState::new());
     HttpServer::new(move || {
