@@ -104,7 +104,7 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
  <li> Inspiration: <a href=\"https://grugbrain.dev/\">https://grugbrain.dev/</a>
 </ul>
 
-<h3>Picture of Site Developer</h3>
+<h3>Picture of Site Maintainer</h3>
 <img src=\"/webfiles/me.jpg\">
 
 <h3>Todo</h3>
