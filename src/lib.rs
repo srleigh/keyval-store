@@ -31,7 +31,7 @@ struct FormData {
 
 #[get("/")]
 async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
-    let channels = db.num_rows().unwrap_or(-1);
+    let keys = db.num_rows().unwrap_or(-1);
     let reads = app_state.get_reads();
     let writes = app_state.get_writes();
     let hours_uptime = (Utc::now() - app_state.startup_datetime).num_minutes() as f64 / 60.0;
@@ -89,7 +89,7 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 
 <h3>Server Info</h3>
 <ul>
- <li> Channels: {channels}
+ <li> Entries: {keys}
  <li> Session reads: {reads}
  <li> Session writes: {writes}
  <li> Session uptime: {hours_uptime:.1} hrs
@@ -117,22 +117,22 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 }
 
 #[get("/v1/{chan}/get")]
-async fn channel_get(channel: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+async fn get_by_get_url(key: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     app_state.increment_reads();
-    let channel: String = channel.to_string();
-    let msg = db.read(&channel).unwrap_or("".to_string());
+    let key: String = key.to_string();
+    let msg = db.read(&key).unwrap_or("".to_string());
     HttpResponse::Ok().body(msg)
 }
 
-fn interactive(channel: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+fn interactive(key: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     app_state.increment_reads();
-    let val = db.read(&channel).unwrap_or("".to_string());
+    let val = db.read(&key).unwrap_or("".to_string());
     let html = format!("
     <html>
     <script>
 async function updateValueLoop(){{
   while(true){{
-  fetch(\"http://keyval.store/v1/{channel}/get\")
+  fetch(\"http://keyval.store/v1/{key}/get\")
     .then((response) => response.text())
     .then((data) => document.getElementById(\"val\").innerHTML = data)
     await new Promise(r => setTimeout(r, 500));
@@ -143,7 +143,7 @@ updateValueLoop();
 
     <body>
     Value: <span id=\"val\">{val}</span>
-<form action=\"/v1/{channel}\" method=\"post\" enctype=\"application/x-www-form-urlencoded\">
+<form action=\"/v1/{key}\" method=\"post\" enctype=\"application/x-www-form-urlencoded\">
  <label for=\"msg\">Enter new value: </label>
  <input type=\"text\" name=\"msg\" required>
  <input type=\"submit\" value=\"Set!\">
@@ -152,24 +152,24 @@ updateValueLoop();
 }
 
 #[get("/v1/{chan}")]
-async fn interactive_get(channel: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
-    interactive(channel, app_state, db)
+async fn interactive_get(key: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+    interactive(key, app_state, db)
 }
 
 #[post("/v1/{chan}")]
-async fn interactive_post(channel: web::Path<String>, form: web::Form<FormData>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+async fn interactive_post(key: web::Path<String>, form: web::Form<FormData>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     app_state.increment_writes();
-    let val: String = channel.to_string();
-    let _ = db.write(&val, &form.msg);
-    interactive(channel, app_state, db)
+    let key_for_db: String = key.to_string();
+    let _ = db.write(&key_for_db, &form.msg);
+    interactive(key, app_state, db)
 }
 
 #[get("/v1/{chan}/set/{data}")]
 async fn set_by_get_url(param: web::Path<(String, String)>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     app_state.increment_writes();
-    let channel = param.0.to_string();
+    let key = param.0.to_string();
     let msg = param.1.to_string();
-    let _ = db.write(&channel, &msg);
+    let _ = db.write(&key, &msg);
     HttpResponse::Ok()
 }
 
@@ -186,7 +186,7 @@ async fn set_by_post_url(param: web::Path<(String, String)>, _payload: web::Payl
 async fn set_by_post_body(param: web::Path<String>, mut payload: web::Payload, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     const MAX_SIZE: usize = 1024 * 1024;  // 1MB
     app_state.increment_writes();
-    let channel = param.to_string();
+    let key = param.to_string();
     // payload is a stream of Bytes objects
     let mut body = web::BytesMut::new();
     while let Some(chunk) = payload.next().await {
@@ -204,7 +204,7 @@ async fn set_by_post_body(param: web::Path<String>, mut payload: web::Payload, a
         Ok(s) => s.to_string(),
         Err(_) => {return HttpResponse::UnprocessableEntity();},
     };
-    let _ = db.write(&channel, &body);
+    let _ = db.write(&key, &body);
     HttpResponse::Ok()
 }
 
@@ -221,7 +221,7 @@ pub async fn lib_main(port: u16) -> std::io::Result<()> {
             .service(home)
             .service(interactive_get)
             .service(interactive_post)
-            .service(channel_get)
+            .service(get_by_get_url)
             .service(set_by_get_url)
             .service(set_by_post_body)
             .service(set_by_post_url)
