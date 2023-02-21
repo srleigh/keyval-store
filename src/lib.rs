@@ -44,6 +44,7 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     let disk_total = system.disks()[0].total_space() as f64 / 1024.0 / 1024.0;
     let python_example = include_str!("../examples/python.py");
     let rust_example = include_str!("../examples/rust/src/main.rs");
+    let esp32_example = include_str!("../examples/esp32.ino").replace("<","&lt");
     let html = format!("
 <html>
 <head>
@@ -80,6 +81,9 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 <h3>Rust Example</h3>
 <pre><code>{rust_example}</code></pre>
 
+<h3>ESP32 Example</h3>
+<pre><code>{esp32_example}</code></pre>
+
 <h3>Storage Details</h3>
 <ul>
  <li> Each key holds one value
@@ -105,12 +109,8 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
  <li> Inspiration: <a href=\"https://grugbrain.dev/\">https://grugbrain.dev/</a>
 </ul>
 
-<h3>Picture of Site Maintainer</h3>
-<img src=\"/webfiles/me.jpg\">
-
 <h3>Todo</h3>
 <ul>
- <li> C example
  <li> Javascript example
 <ul>
 </body></html>");
