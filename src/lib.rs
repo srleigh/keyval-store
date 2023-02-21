@@ -36,8 +36,8 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     let writes = app_state.get_writes();
     let hours_uptime = (Utc::now() - app_state.startup_datetime).num_minutes() as f64 / 60.0;
     let (mem_virtual, mem_resident, mem_total) = memory_stats().unwrap_or((-1.0,-1.0,-1.0));
-    let build_time = env!("VERGEN_BUILD_TIMESTAMP");
-    let build_version = env!("VERGEN_GIT_SHA");
+    let build_time = env!("VERGEN_BUILD_TIMESTAMP").get(0..19).unwrap_or("???");
+    let build_version = env!("VERGEN_GIT_SHA").get(0..7).unwrap_or("???");
     let database_size = db.database_size().unwrap_or(0) as f64 / 1024.0 / 1024.0;
     let mut system = sysinfo::System::new_all();
     system.refresh_all();
@@ -65,13 +65,14 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 <p style=\"text-align:center;\">Super simple free key-value store.  No setup or configuration, and did I mention it is free!
 
 <h3>REST API</h3>
-<p>Can get and set to values by just visiting URLs in a browser, but intention is to mostly use code.
-<ul>
- <li> Set using http get. eg: <a href=\"/v1/newkey/set/mydata123\">http://keyval.store/v1/newkey/set/mydata123</a>
- <li> Set using http post to url <a href=\"/v1/newkey/set\">http://keyval.store/v1/newkey/set</a>
- <li> Get value using http get.  eg: <a href=\"/v1/newkey/get\">http://keyval.store/v1/newkey/get</a>
- <li> Interactively get and set values at key url: <a href=\"/v1/newkey\">http://keyval.store/v1/newkey</a>
-</ul>
+<b>Set</b> a value with an http get request, usually a one-liner.
+<br>eg: <a href=\"/v1/newkey/set/mydata123\">http://keyval.store/v1/newkey/set/mydata123</a>
+<br>Additionally an http post with the value as the body can be used.
+<br><b>Get</b> a value using an http get request.
+<br>eg: <a href=\"/v1/newkey/get\">http://keyval.store/v1/newkey/get</a>
+<br><b>Interactively</b> both get and set values in the browser by direclty visiting the key url.
+<br>eg. <a href=\"/v1/newkey\">http://keyval.store/v1/newkey</a>
+<br>Values may be get and set by just visiting URLs in a browser, but intention is to mostly use code.
 
 <h3>Python 3 Example</h3>
 <pre><code>{python_example}</code></pre>
@@ -89,6 +90,7 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 
 <h3>Server Info</h3>
 <ul>
+ <li> Source: <a href=\"https://github.com/srleigh/keyval-store\">https://github.com/srleigh/keyval-store</a>
  <li> Entries: {keys}
  <li> Session reads: {reads}
  <li> Session writes: {writes}
@@ -100,7 +102,6 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
  <li> Disk space total: {disk_total:.3} MB
  <li> Build time: {build_time}
  <li> Build version: {build_version}
- <li> Source: <a href=\"https://github.com/srleigh/keyval-store\">https://github.com/srleigh/keyval-store</a>
  <li> Inspiration: <a href=\"https://grugbrain.dev/\">https://grugbrain.dev/</a>
 </ul>
 
