@@ -89,7 +89,7 @@ updateCharacteristic()
 <p style=\"text-align:center;\">Very simple, free key-value store.  No setup or configuration, and did I mention it's free!
 
 
-<h3>Basic REST API</h3>
+<h2>Basic REST API</h2>
 HTTP GET requests can be used to set and get key-values.
 <br>&nbsp&nbsp<b>Set</b>
 <br>&nbsp&nbsp<a href=\"/v1/theykey/set/mydata123\">http://keyval.store/v1/thekey/set/thedata</a>
@@ -101,7 +101,7 @@ HTTP GET requests can be used to set and get key-values.
 <br>See <a href=\"#advanced\">Advanced REST API</a> for more details.
 
 
-<h3>Personalized Key-Value</h3>
+<h2>Personalized Key-Value</h2>
 Congratulations, you have been awarded your very own personal Key-Value pair!
 <br>Key: <code>VisitorCharacteristics</code>
 <br>Value: <code>{personal_val}</code>
@@ -109,17 +109,17 @@ Congratulations, you have been awarded your very own personal Key-Value pair!
 <br><a href=\"/v1/VisitorCharacteristics/play\">http://keyval.store/v1/VisitorCharacteristics/play</a>
 
 
-<h3>Python 3 Example</h3>
+<h2>Python 3 Example</h2>
 <pre><code>{python_example}</code></pre>
 
-<h3>Rust Example</h3>
+<h2>Rust Example</h2>
 <pre><code>{rust_example}</code></pre>
 
-<h3>ESP32 Example</h3>
+<h2>ESP32 Example</h2>
 <pre><code>{esp32_example}</code></pre>
 
 
-<h3 id=\"advanced\">Advanced REST API</h3>
+<h2 id=\"advanced\">Advanced REST API</h2>
 <b>Get</b>: The get verb in the url is not actually needed.
 <br>Eg. <a href=\"/v1/newkey\">http://keyval.store/v1/thekey</a>
 <br><b>Set</b>: Set large values (>=1MB) by using HTTP POST with value as body.
@@ -127,7 +127,7 @@ Alternatively a post to a key with the set verb will set a key based on the url 
 <br>Values may be get and set by just visiting URLs in a browser, but intention is to mostly use code.
 
 
-<h3>Storage Details</h3>
+<h2>Storage Details</h2>
 <ul>
  <li> Each key holds one value
  <li> A new value will overwrite an old value for a given key
@@ -136,7 +136,7 @@ Alternatively a post to a key with the set verb will set a key based on the url 
 </ul>
 
 
-<h3>Server Info</h3>
+<h2>Server Info</h2>
 <ul>
  <li> <a href=\"https://github.com/srleigh/keyval-store\">Source</a>
  <li> Entries: {keys}
@@ -154,7 +154,7 @@ Alternatively a post to a key with the set verb will set a key based on the url 
 </ul>
 
 
-<h3>Todo</h3>
+<h2>Todo</h2>
 <ul>
  <li> Javascript example
 <ul>
