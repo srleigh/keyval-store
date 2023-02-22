@@ -59,11 +59,11 @@ fn test_post_body() {
     let my_key = "http://0.0.0.0:8081/v1/test_post_body";
 
     let client = reqwest::blocking::Client::new();
-    let _res = client.post(format!("{my_key}/set"))
+    let _res = client.post(format!("{my_key}"))
         .body(data_in)
         .send().unwrap();
 
-    let data_out = get_as_string(format!("{my_key}/get"));
+    let data_out = get_as_string(format!("{my_key}"));
     assert_eq!(data_in, data_out);
 }
 

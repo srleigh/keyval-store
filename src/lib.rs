@@ -24,6 +24,18 @@ fn memory_stats() -> anyhow::Result<(f64, f64, f64)> {
     Ok((mem_virtual, mem_resident, mem_total))
 }
 
+fn personlized_value() -> Option<String> {
+    use rand::seq::SliceRandom;
+    let adverbs = ["Very", "Oddly", "Unreasonably", "Questionably", "Suspiciously", "Quirky"];
+    let adjectives = ["Green", "Blue", "Clever", "Stunted", "Weak-Armed", "TriggerHappy"];
+    let nouns = ["Monkey", "Kangaroo", "Velociraptor", "Carrot", "Caveman", "CakeEater", "DoubleDipper"];
+    let adv = adverbs.choose(&mut rand::thread_rng())?;
+    let adj = adjectives.choose(&mut rand::thread_rng())?;
+    let noun = nouns.choose(&mut rand::thread_rng())?;
+    let value = adv.to_string() + adj + noun;
+    Some(value)
+}
+
 #[derive(Deserialize)]
 struct FormData {
     msg: String,
@@ -45,8 +57,19 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     let python_example = include_str!("../examples/python.py");
     let rust_example = include_str!("../examples/rust/src/main.rs");
     let esp32_example = include_str!("../examples/esp32.ino").replace("<","&lt");
+    let personal_val = personlized_value().unwrap_or("???".to_string());
     let html = format!("
 <html>
+
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+
+<script>
+async function updateCharacteristic(){{
+  fetch(\"http://keyval.store/v1/RandomWebsiteVisitor872823Characteristics/set/{personal_val}\").await
+}}
+updateCharacteristic()
+</script>
+
 <head>
  <title>KeyVal-Store</title>
  <link rel=\"stylesheet\" href=\"/webfiles/styles.css\">
@@ -60,20 +83,30 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 </head>
 
 <body>
-<h1 style=\"text-align:center;\">World's Simplest Key-Value Store</h1>
+<h1 style=\"text-align:center;\">Simple Key-Value Store</h1>
 <p style=\"text-align:center;\"><img src=\"/webfiles/api.scalable.svg\"></p>
 
-<p style=\"text-align:center;\">Super simple free key-value store.  No setup or configuration, and did I mention it is free!
+<p style=\"text-align:center;\">Very simple, free key-value store.  No setup or configuration, and did I mention it's free!
 
-<h3>REST API</h3>
-<b>Set</b> a value with an http get request, usually a one-liner.
-<br>eg: <a href=\"/v1/newkey/set/mydata123\">http://keyval.store/v1/newkey/set/mydata123</a>
-<br>Additionally an http post with the value as the body can be used.
-<br><b>Get</b> a value using an http get request.
-<br>eg: <a href=\"/v1/newkey/get\">http://keyval.store/v1/newkey/get</a>
-<br><b>Interactively</b> both get and set values in the browser by direclty visiting the key url.
-<br>eg. <a href=\"/v1/newkey\">http://keyval.store/v1/newkey</a>
-<br>Values may be get and set by just visiting URLs in a browser, but intention is to mostly use code.
+
+<h3>Basic REST API</h3>
+HTTP GET requests can be used to <b>set</b> and <b>get</b> key-values.
+<ul>
+<li><b>Set</b>: <a href=\"/v1/theykey/set/mydata123\">http://keyval.store/v1/thekey/set/thedata</a>
+<li><b>Get</b>: <a href=\"/v1/theykey/get\">http://keyval.store/v1/thekey/get</a>
+</ul>
+Interactively <b>get</b> and <b>set</b> values in the browser by visiting the <b>play</b> url:
+<br><a href=\"/v1/thekey/play\">http://keyval.store/v1/thekey/play</a>
+<br>See <a href=\"#advanced\">Advanced REST API</a> for more details.
+
+
+<h3>Personalized Key-Value</h3>
+Congratulations, you have been awarded your very own personal Key-Value pair!
+<br>Key: <code>RandomWebsiteVisitor872823Characteristics</code>
+<br>Value: <code>{personal_val}</code>
+<br>If you would like to change your personalized Key-Value you may do it here:
+<br><a href=\"/v1/RandomWebsiteVisitor872823Characteristics/play\">http://keyval.store/v1/RandomWebsiteVisitor872823Characteristics/play</a>
+
 
 <h3>Python 3 Example</h3>
 <pre><code>{python_example}</code></pre>
@@ -84,6 +117,15 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 <h3>ESP32 Example</h3>
 <pre><code>{esp32_example}</code></pre>
 
+
+<h3 id=\"advanced\">Advanced REST API</h3>
+<b>Get</b>: The get verb in the url is not actually needed.
+<br>Eg. <a href=\"/v1/newkey\">http://keyval.store/v1/thekey</a>
+<br><b>Set</b>: Set large values (>=1MB) by using HTTP POST with value as body.
+Alternatively a post to a key with the set verb will set a key based on the url and ignore the body.
+<br>Values may be get and set by just visiting URLs in a browser, but intention is to mostly use code.
+
+
 <h3>Storage Details</h3>
 <ul>
  <li> Each key holds one value
@@ -91,6 +133,7 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
  <li> Data persists in a database
  <li> Max post size is 1MB
 </ul>
+
 
 <h3>Server Info</h3>
 <ul>
@@ -109,6 +152,7 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
  <li> Inspiration: <a href=\"https://grugbrain.dev/\">https://grugbrain.dev/</a>
 </ul>
 
+
 <h3>Todo</h3>
 <ul>
  <li> Javascript example
@@ -119,6 +163,14 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
 
 #[get("/v1/{chan}/get")]
 async fn get_by_get_url(key: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
+    app_state.increment_reads();
+    let key: String = key.to_string();
+    let msg = db.read(&key).unwrap_or("".to_string());
+    HttpResponse::Ok().body(msg)
+}
+
+#[get("/v1/{chan}")]
+async fn get_by_get_url_direct(key: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     app_state.increment_reads();
     let key: String = key.to_string();
     let msg = db.read(&key).unwrap_or("".to_string());
@@ -143,8 +195,8 @@ updateValueLoop();
     </script>
 
     <body>
-    Value: <span id=\"val\">{val}</span>
-<form action=\"/v1/{key}\" method=\"post\" enctype=\"application/x-www-form-urlencoded\">
+    Value: <code><span id=\"val\">{val}</span></code>
+<form action=\"/v1/{key}/play\" method=\"post\" enctype=\"application/x-www-form-urlencoded\">
  <label for=\"msg\">Enter new value: </label>
  <input type=\"text\" name=\"msg\" required>
  <input type=\"submit\" value=\"Set!\">
@@ -152,12 +204,12 @@ updateValueLoop();
     HttpResponse::Ok().body(html)
 }
 
-#[get("/v1/{chan}")]
+#[get("/v1/{chan}/play")]
 async fn interactive_get(key: web::Path<String>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     interactive(key, app_state, db)
 }
 
-#[post("/v1/{chan}")]
+#[post("/v1/{chan}/play")]
 async fn interactive_post(key: web::Path<String>, form: web::Form<FormData>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     app_state.increment_writes();
     let key_for_db: String = key.to_string();
@@ -165,16 +217,16 @@ async fn interactive_post(key: web::Path<String>, form: web::Form<FormData>, app
     interactive(key, app_state, db)
 }
 
-#[get("/v1/{chan}/set/{data}")]
+#[get("/v1/{key}/set/{val}")]
 async fn set_by_get_url(param: web::Path<(String, String)>, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     app_state.increment_writes();
     let key = param.0.to_string();
-    let msg = param.1.to_string();
-    let _ = db.write(&key, &msg);
+    let val = param.1.to_string();
+    let _ = db.write(&key, &val);
     HttpResponse::Ok()
 }
 
-#[post("/v1/{chan}/set/{val}")]
+#[post("/v1/{key}/set/{val}")]
 async fn set_by_post_url(param: web::Path<(String, String)>, _payload: web::Payload, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     app_state.increment_writes();
     let key = param.0.to_string();
@@ -183,7 +235,7 @@ async fn set_by_post_url(param: web::Path<(String, String)>, _payload: web::Payl
     HttpResponse::Ok()
 }
 
-#[post("/v1/{chan}/set")]
+#[post("/v1/{chan}")]
 async fn set_by_post_body(param: web::Path<String>, mut payload: web::Payload, app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     const MAX_SIZE: usize = 1024 * 1024;  // 1MB
     app_state.increment_writes();
@@ -226,6 +278,7 @@ pub async fn lib_main(port: u16) -> std::io::Result<()> {
             .service(set_by_get_url)
             .service(set_by_post_body)
             .service(set_by_post_url)
+            .service(get_by_get_url_direct)
             .service(Files::new("/webfiles", "./webfiles"))
     })
     .bind(("0.0.0.0", port))?

@@ -1167,6 +1167,7 @@ dependencies = [
  "criterion",
  "futures",
  "procfs",
+ "rand",
  "rayon",
  "reqwest",
  "rusqlite",
