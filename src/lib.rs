@@ -61,11 +61,11 @@ async fn home(app_state: Data<AppState>, db: Data<DB>) -> impl Responder {
     let html = format!("
 <html>
 
-<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+<meta name=\"viewport\" content=\"width=device-width, initial-scale=0.8\" />
 
 <script>
 async function updateCharacteristic(){{
-  fetch(\"http://keyval.store/v1/RandomWebsiteVisitor872823Characteristics/set/{personal_val}\").await
+  fetch(\"http://keyval.store/v1/VisitorCharacteristics/set/{personal_val}\").await
 }}
 updateCharacteristic()
 </script>
@@ -83,29 +83,30 @@ updateCharacteristic()
 </head>
 
 <body>
-<h1 style=\"text-align:center;\">Simple Key-Value Store</h1>
+<h1 style=\"text-align:center;\">Very Simple Key-Value Store</h1>
 <p style=\"text-align:center;\"><img src=\"/webfiles/api.scalable.svg\"></p>
 
 <p style=\"text-align:center;\">Very simple, free key-value store.  No setup or configuration, and did I mention it's free!
 
 
 <h3>Basic REST API</h3>
-HTTP GET requests can be used to <b>set</b> and <b>get</b> key-values.
-<ul>
-<li><b>Set</b>: <a href=\"/v1/theykey/set/mydata123\">http://keyval.store/v1/thekey/set/thedata</a>
-<li><b>Get</b>: <a href=\"/v1/theykey/get\">http://keyval.store/v1/thekey/get</a>
-</ul>
-Interactively <b>get</b> and <b>set</b> values in the browser by visiting the <b>play</b> url:
-<br><a href=\"/v1/thekey/play\">http://keyval.store/v1/thekey/play</a>
+HTTP GET requests can be used to set and get key-values.
+<br>&nbsp&nbsp<b>Set</b>
+<br>&nbsp&nbsp<a href=\"/v1/theykey/set/mydata123\">http://keyval.store/v1/thekey/set/thedata</a>
+<br>&nbsp&nbsp<b>Get</b>
+<br>&nbsp&nbsp<a href=\"/v1/theykey/get\">http://keyval.store/v1/thekey/get</a>
+<br>Interactively get and set values in the browser by visiting the play url.
+<br>&nbsp&nbsp<b>Play</b>
+<br>&nbsp&nbsp<a href=\"/v1/thekey/play\">http://keyval.store/v1/thekey/play</a>
 <br>See <a href=\"#advanced\">Advanced REST API</a> for more details.
 
 
 <h3>Personalized Key-Value</h3>
 Congratulations, you have been awarded your very own personal Key-Value pair!
-<br>Key: <code>RandomWebsiteVisitor872823Characteristics</code>
+<br>Key: <code>VisitorCharacteristics</code>
 <br>Value: <code>{personal_val}</code>
 <br>If you would like to change your personalized Key-Value you may do it here:
-<br><a href=\"/v1/RandomWebsiteVisitor872823Characteristics/play\">http://keyval.store/v1/RandomWebsiteVisitor872823Characteristics/play</a>
+<br><a href=\"/v1/VisitorCharacteristics/play\">http://keyval.store/v1/VisitorCharacteristics/play</a>
 
 
 <h3>Python 3 Example</h3>
@@ -137,7 +138,7 @@ Alternatively a post to a key with the set verb will set a key based on the url 
 
 <h3>Server Info</h3>
 <ul>
- <li> Source: <a href=\"https://github.com/srleigh/keyval-store\">https://github.com/srleigh/keyval-store</a>
+ <li> <a href=\"https://github.com/srleigh/keyval-store\">Source</a>
  <li> Entries: {keys}
  <li> Session reads: {reads}
  <li> Session writes: {writes}
