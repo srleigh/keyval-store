@@ -92,7 +92,7 @@ updateCharacteristic()
 <h2>Basic REST API</h2>
 HTTP GET requests can be used to set and get key-values.
 <br>&nbsp&nbsp<b>Set</b>
-<br>&nbsp&nbsp<a href=\"/v1/thekey/set/mydata123\">http://keyval.store/v1/thekey/set/thedata</a>
+<br>&nbsp&nbsp<a href=\"/v1/thekey/set/thedata\">http://keyval.store/v1/thekey/set/thedata</a>
 <br>&nbsp&nbsp<b>Get</b>
 <br>&nbsp&nbsp<a href=\"/v1/thekey/get\">http://keyval.store/v1/thekey/get</a>
 <br>Interactively get and set values in the browser by visiting the play url.
