@@ -10,11 +10,15 @@
   - in advanced config direct to ip of Oracle instance
 - VM instance setup steps
   - rustup
-  - $ sudo apt install git screen sqlite3 gcc -y
-  - allow all traffic through iptables: $ sudo iptables -I INPUT -j ACCEPT
+  - $ sudo apt install git sqlite3 gcc iptables-persistent -y
+  - allow all traffic through iptables:
+    - $ sudo iptables -I INPUT -j ACCEPT
+    - $ sudo iptables -I OUTPUT -j ACCEPT
+    - $ sudo netfilter-persistent save
 - Deploy
   - clone repo
-  - $ cargo build --release
-  - $ screen
-  - $ ./target/release/keyval-store 80
-  - exit screen
+  - $ cp deploy.py ..
+  - $ cp keyval.service /etc/systemd/system/
+  - $ sudo systemctl daemon-reload
+  - $ sudo systemctl enable keyval.service
+  - $ sudo systemctl start keyval.service

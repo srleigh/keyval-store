@@ -1,0 +1,14 @@
+[Unit]
+Description=Key-Value
+After=network.target
+
+[Service]
+Type=idle
+Restart=on-failure
+User=root
+ExecStart=python3 /home/ubuntu/dev/deploy.py
+WorkingDirectory=/home/ubuntu/dev/
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
