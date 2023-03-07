@@ -11,7 +11,7 @@
 - VM instance setup steps
   - rustup
   - $ sudo apt install git screen sqlite3 gcc -y
-  - allow all traffic through iptables: $ iptables -I INPUT -j ACCEPT
+  - allow all traffic through iptables: $ sudo iptables -I INPUT -j ACCEPT
 - Deploy
   - clone repo
   - $ cargo build --release

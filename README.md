@@ -1,3 +1,3 @@
-# Worlds Simplest Key-Value Store
+# World's Simplest Key-Value Store
 
 http://keyval.store

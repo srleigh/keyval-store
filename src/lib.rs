@@ -86,7 +86,8 @@ updateCharacteristic()
 <h1 style=\"text-align:center;\">Very Simple Key-Value Store</h1>
 <p style=\"text-align:center;\"><img src=\"/webfiles/api.scalable.svg\"></p>
 
-<p style=\"text-align:center;\">Very simple, free key-value store.  No setup or configuration, and did I mention it's free!
+<p style=\"text-align:center;\">Very simple key-value store.  No setup or configuration.
+<p style=\"text-align:center;\">Pay what you want: <a href=\"https://www.buymeacoffee.com/keyval\">www.buymeacoffee.com/keyval</a>
 
 
 <h2>Basic REST API</h2>
@@ -157,6 +158,7 @@ Alternatively a post to a key with the set verb will set a key based on the url 
 <h2>Todo</h2>
 <ul>
  <li> Javascript example
+ <li> Append API
 <ul>
 </body></html>");
     HttpResponse::Ok().body(html)
